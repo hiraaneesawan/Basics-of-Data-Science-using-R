@@ -1,0 +1,436 @@
+---
+title: "Basics of Data Science in R"
+output: html_notebook
+---
+
+***
+
+#### **Introduction**
+Hello! My name is *Hira Anees Awan*. I am from *Pakistan*. Currently, I am pursuing a Master's degree in Biostatistics at Duke University. I recently joined Tomaras Lab to work with Cesar Lopez. I love to teach and do computer programming so this workshop is kind of like the best case scenario for me.
+
+You can email me at ha96@duke.edu for any queries or input. I would love your feedback on this workshop.
+
+##### **Let's get started!**
+
+You will be wondering what is this beautiful notebook like thing where I can write paragraphs and insert chunks of code and run it like a script. Notice the extension of this file. It is **'.Rmd'**. This means it is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Here, I am providing a [link](https://rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf) to a brief cheatsheet to R markdown. You can do all kinds of cool stuff with R markdown. Today's main agenda is not to teach you R markdown but I felt like this is a great tool to introduce to beginners who like to document every single line of code. And, it is fun too. 
+
+
+##### **Code Chunks**
+Let's add a code chunk and try to run it in R. 
+
+```{r}
+2+2
+```
+
+Viola! Two plus two equals four. Great! Now that everything is up and running, I will explain what we are trying to do today. 
+
+#### **Agenda**
+The main agenda of today's workshop is to get you acquainted with basics of Data Science using R. I must add that we are going to focus on small datasets. I believe a beginner's workshop should focus on smaller datasets that are easy to manipulate and visualize. 
+
+At the conclusion of this workshop, you will be able:
+
+* To load text files and csv files into R
+* To understand and use different data types in R widely used in Data Science
+* To use an R library
+* To manipulate data using powerful R libraries
+* To calculate descriptive statistics on different kinds of features in a data
+* To visualize different features of a dataset using a variety of plots
+* To analyze data using an R library (I am not primarily focusing on data analysis part because there is a huge variety of algorithms available for different kinds of data and the type of question you are trying to answer using that data.)
+* Bonus: Neural networks in R, Principal Component Analysis in R
+
+***
+#### **Loading data into R**
+***
+You can almost load any kind of file in R. We will focus on the widely used files including text files and csv. 
+
+##### **Text file - Tab delimited**
+
++ Loading a text file into an R Dataframe...
++ 'header=TRUE' means that the names of the columns are included in the text file
++ '\\t' specifies that the file is tab-delimited.
+
++ head shows the first six rows of a data frame 
+```{r}
+TextFile_df <- read.table("Tab_Delimited_Text_File.txt", header = TRUE, sep = "\t")
+head(TextFile_df)
+```
+
+
+##### **csv file**
+
++ Loading csv file into an R Dataframe...
++ 'header=TRUE' means that the names of the columns are included in the text file
+
++ tail shows the last six rows of a data frame
+
+```{r}
+train_df <- read.csv("train.csv",header = TRUE)
+test_df <- read.csv("test.csv",header = TRUE)
+
+head(train_df)
+tail(test_df)
+```
+
+
+Here, I would like to stop and emphasize on some datatypes in R which you will come across very often. 
+
+***
+
+**Vector: It will have one datatype only. If you do not put the same datatype, it will enforce the same datatype across all the elements of the vector.  **
+
+```{r}
+vector_1 <- c('Biostatistics','Electrical Engineering','Mechanical Engineering')
+print(vector_1)
+vector_2 <- c('Covid', 10+9)
+print(vector_1[1])
+print(vector_2[2])
+```
+
+*** 
+
+**List: It can have different datatypes. **
+```{r}
+# Create a list.
+list_1 <- list(c(1,2,3),45,'Quarantine')
+print(list_1)
+print(list_1[[1]])
+```
+
+*** 
+
+**Matrices: A matrix is a two-dimensional rectangular data set. It can be created using a vector input to the matrix function. **
+
+```{r}
+matrix_1 = matrix( c('h','i','r','a','9',5), nrow = 2, ncol = 3, byrow = TRUE)
+print(matrix_1)
+print(matrix_1[1,])
+print(matrix_1[,2])
+print(matrix_1[1,2])
+```
+
+*** 
+
+**Arrays: While matrices are confined to two dimensions, arrays can be of any number of dimensions. The array function takes a dim attribute which creates the required number of dimension. In the below example we create an array with two elements which are 3x3 matrices each **
+
+```{r}
+# Create an array.
+array_1 <- array(c('orange','green'),dim = c(3,3,4))
+print(array_1)
+#first matrix
+print(array_1[,,1])
+#third column of first matrix
+print(array_1[,3,1]) 
+#third row of second matrix
+print(array_1[3,,2])
+
+```
+
+***
+**Factors: For categorical data**
+
+```{r}
+# Create a vector.
+apple_colors <- c('green','green','yellow','red','red','red','green')
+# Create a factor object.
+factor_1 <- factor(apple_colors)
+# Print the factor.
+print(factor_1)
+
+print(nlevels(factor_1))
+```
+Let's get back on track and work towards step 2 that is...
+
+***
+#### **Data manipulation**
+***
+
+##### **Using Dplyr**
+**Selecting columns of a dataframe using dplyr**
+```{r}
+library(dplyr)
+
+somecolumns_1 <- select(train_df, Name, Sex, Age)
+head(somecolumns_1)
+
+# keep the variables name and all variables 
+# between parch and cabin inclusive
+somecolumns_2 <- select(train_df,Parch:Cabin)
+head(somecolumns_2)
+
+# keep all variables except Embarked
+somecolumns_3 <- select(train_df, -Embarked)
+head(somecolumns_3)
+```
+
+**Selecting rows of a dataframe using dplyr**
+
+```{r}
+library(dplyr)
+somerows_1 <- filter(train_df, 
+                  Sex == "female")
+head(somerows_1)
+```
+
+**Mutating a dataframe using dplyr**
+
+```{r}
+#Changing Fare variable by multiplying each entry by 1.1
+mutated_1 <- mutate(train_df, Fare = Fare * 1.1);
+#Creating a new variable called FareCategorical that is low when Fare < 70 and #high otherwise
+mutated_2 <- mutate(train_df, 
+                  FareCategorical = ifelse(Fare < 70, 'low','high'))
+
+```
+
+**Using pipes**
+Pipes are used to do multiple steps in one go. Here, first, we will filter the dataset by females. Resulting instances will be females, the next step is to group all the females by class. Now, all the females will be classified based on the Pclass variable. Last step is to create a variable called mean_age that will compute the mean of age in the sub groups of these females. 
+```{r}
+pipe_1 <- train_df %>%
+  filter(Sex == "female") %>%
+  group_by(Pclass) %>%
+  summarize(mean_age = mean(Age, na.rm = TRUE))
+```
+
+***
+#### **Descriptive statistics**
+***
+This is a very short section. We will look at how R can present summaries of 
+different variables.
+
+**Summarizing a continous variable**
+```{r}
+summary(train_df$Age)
+
+#Try running this ... Will not return a value...
+mean(train_df$Age)
+
+#Why? It has missing values... Solution? Remove the missing values. 
+mean(train_df$Age, na.rm=TRUE)
+```
+
+**Summarizing a categorical variable**
+```{r}
+table(train_df$Sex)
+```
+
+***
+#### **Data Visualization**
+***
+
+**ggplot**
+
+ggplot is one of the most famous libraries of R that is used for data visualizations. If you want to learn more about ggplots, here is a [link](https://rkabacoff.github.io/datavis/IntroGGPLOT.html) for you.
+
+```{r}
+library(ggplot2)
+ggplot(data = train_df,
+       mapping = aes(x = PassengerId, y = Fare))
+```
+
+Why is the graph empty? We specified that the PassengerId variable should be mapped to the x-axis and that the Fare should be mapped to the y-axis, but we haven’t yet specified what we wanted placed on the graph.
+
+Geoms to the rescue!
+
+```{r}
+library(ggplot2)
+ggplot(data = train_df,
+       mapping = aes(x = PassengerId, y = Fare))+
+  geom_point()
+```
+
+Let's make it fancy and fit a line!
+
+```{r}
+library(ggplot2)
+ggplot(data = train_df,
+       mapping = aes(x = PassengerId, y = Fare))+
+  geom_point(color = "cornflowerblue",
+             alpha = .7,
+             size = 3)+
+   geom_smooth(method = "lm")
+```
+
+
+**Histograms**
+
+```{r}
+library(scales)
+ggplot(train_df, 
+       aes(x = Age, 
+           y= ..count.. / sum(..count..))) +
+  geom_histogram(fill = "Blue", 
+                 color = "white", 
+                 binwidth = 5) + 
+  labs(title="Travellers by age", 
+       y = "Percent",
+       x = "Age") +
+  scale_y_continuous(labels = percent)
+```
+
+**Categorical data**
+```{r}
+ggplot(train_df, aes(x = Sex)) + 
+  geom_bar(fill = "cornflowerblue", 
+           color="black") +
+  labs(x = "Sex", 
+       y = "Frequency", 
+       title = "Travellers by Sex")+
+  coord_flip()
+```
+
+**Pie chart**
+
+```{r}
+# create a pie chart with slice labels
+plotdata <- train_df %>%
+  count(Pclass) %>%
+  arrange(desc(Pclass)) %>%
+  mutate(prop = round(n*100/sum(n), 1),
+         lab.ypos = cumsum(prop) - 0.5*prop)
+
+plotdata$label <- paste0(plotdata$Pclass, "\n",
+                         round(plotdata$prop), "%")
+
+ggplot(plotdata, 
+       aes(x = "", 
+           y = prop, 
+           fill = Pclass)) +
+  geom_bar(width = 1, 
+           stat = "identity", 
+           color = "black") +
+  geom_text(aes(y = lab.ypos, label = label), 
+            color = "black") +
+  coord_polar("y", 
+              start = 0, 
+              direction = -1) +
+  theme_void() +
+  theme(legend.position = "FALSE") +
+  labs(title = "Participants by class")
+```
+
+**Tree map**
+
+```{r}
+library(treemapify)
+
+# create a treemap of marriage officials
+plotdata <- train_df %>%
+  count(Pclass)
+
+ggplot(plotdata, 
+       aes(fill = Pclass, 
+           area = n,
+           label = Pclass)) +
+  geom_treemap() + 
+  geom_treemap_text(colour = "white", 
+                    place = "centre") +
+   labs(title = "Training data by class") +
+  theme(legend.position = "none")
+```
+
+**Visualizing 3 variables**
+
+```{r}
+# plot fare histograms by Pclass
+ggplot(train_df, aes(x = Fare)) +
+  geom_histogram(fill = "cornflowerblue",
+                 color = "white") +
+  facet_wrap(~Pclass, ncol = 1) +
+  labs(title = "Fare histograms by Pclass")
+```
+
+```{r}
+# plot fare histograms by sex and pclass
+ggplot(train_df, aes(x = Fare)) +
+  geom_histogram(color = "white",
+                 fill = "cornflowerblue") +
+  facet_grid(Sex ~ Pclass) +
+  labs(title = "Fare histograms by sex and pclass",
+       x = "Fare")
+```
+
+**Miscellaneous graphs**
+
+```{r}
+library(ggplot2)
+library(plotly)
+
+p <- ggplot(train_df, aes(x=PassengerId, 
+                     y=Fare, 
+                     color=Pclass)) +
+  geom_point(size=3) +
+  labs(x = "Passenger Id",
+       y = "Fare",
+       color = "Passenger Class") +
+  theme_bw()
+
+ggplotly(p)
+```
+
+
+***
+#### **Data Analysis**
+***
+
+##### **Neural Networks**
+
+Interesting video that beautifully explains what a neural network is... [link](https://www.youtube.com/watch?v=aircAruvnKk)
+
+```{r}
+# load library
+require(neuralnet)
+
+m <- model.matrix( 
+  ~ Survived + Pclass + Sex + Age + SibSp + Parch + Fare + Embarked, 
+  data = train_df 
+)
+head(m)
+library(neuralnet)
+r <- neuralnet( 
+  Survived ~ Pclass + Sexmale + Age + SibSp + Parch + Fare + EmbarkedC + EmbarkedQ + EmbarkedS, 
+  data=m, hidden=10, threshold=0.5
+)
+```
+
+```{r}
+plot(r)
+```
+
+```{r}
+m2 <- model.matrix( 
+  ~ Pclass + Sex + Age + SibSp + Parch + Fare + Embarked, 
+  data = test_df 
+)
+
+Predict=compute(r,m2)
+prob <- Predict$net.result
+New_test_df <-test_df %>% drop_na(Pclass, Sex, Age,SibSp,Parch, Fare,Embarked)
+New_test_df$Survived <-ifelse(prob>0.5, 1, 0)
+write.csv(New_test_df,"Result.csv", row.names = FALSE)
+
+```
+
+
+##### **Principal Component Analysis (PCA)**
+PCA is a famous dimensionality reduction technique and you want to find that which component/set of components introduce the most variation in your response variable. In other words, we are interested in finding those variables which are mathematically the richest in terms of information. 
+
+Note: PCA can only be run on continuous variables. 
+```{r}
+library(tidyr)
+train_pca_df <- select(train_df, Age, SibSp, Parch, Fare)
+train_pca_df <- train_pca_df %>% drop_na()
+pca_result <- prcomp(train_pca_df, center = TRUE,scale. = TRUE)
+summary(pca_result)
+```
+
+**Interpretation:**
+
++ 40.92% of the total variation in data can be explained by age.
++ 27.68% of the total variation in data can be explained by SibSp
++ 16.73% of the total variation in data can be explained by Parch.
++ 14.67% of the total variation in data can be explained by Fare.
+
+I will definitely keep age in the model, when I am using other machine learning algorithms because the variable age introduces the highest percentage of total variation in the given dataset.
+
